@@ -1,0 +1,45 @@
+Test: Script traitement & import xml
+=====================================
+
+Donnee Source: Un partenaire nous fournit un fichier xml au format DDEX 3.4.1
+(http://ddex.net/dd/DDEX-ERN-341-DD/dd/index.html).
+
+Ce fichier décrit un album, ses droits de diffusion, les chansons qu'il
+contient, et leurs droits de diffusion individuels.
+
+Le but de l'excercice est réaliser un script PHP (php-cli - ligne de commande)
+capable de lire ce XML, d'en extraire les données décrivant l'album, ses chansons
+et leurs droits et d'insérer dans une base de données toutes ces informations.
+Il faut garder à l'esprit que l'ensemble devra être facilement maintenable et
+évolutif, car nous recevons des XML de formats différents, dans différentes
+langues, ou simplement de différentes versions.
+
+Un album doit contenir au minimum les champs suivants:
+- le titre de l'album
+- son ICPN (identifiant d'album)
+- son GRid
+- l'artiste principal
+- le genre
+- le label
+- ses droits de diffusion.
+- ses chansons.
+
+Une chanson doit contenir au minimum les champs suivants:
+- numéro de la chanson
+- le titre de la chanson
+- son ISRC (identifiant de chanson)
+- l'artiste principal
+- la durée (sous forme de seconde)
+- le genre
+- le label
+- ses droits de diffusion (type, model, date(s)).
+
+Une fois ces données extraites, proposez une facon de stocker ces informations
+en base de données, en gardant a l'esprit qu'elles devront être utilisables
+directement par un site écrit en PHP, et à forte charge (d'une audience
+équivalente a celle de Deezer, et offrant un catalogue de plus de 30M de chansons).
+
+Courage, et Bonne Chance !
+
+--
+L'equipe Deezer
