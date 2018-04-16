@@ -2,6 +2,7 @@
 
 namespace Catalog\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -160,7 +161,7 @@ class Album
     }
 
     /**
-     * @return mixed
+     * @return Collection Song
      */
     public function getSongs()
     {
@@ -168,10 +169,11 @@ class Album
     }
 
     /**
-     * @param mixed $songs
+     * @param Song $songs
      */
-    public function setSongs($songs)
+    public function addSong($song)
     {
-        $this->songs = $songs;
+        $this->songs->add($song);
+        $song->setAlbum($this);
     }
 }

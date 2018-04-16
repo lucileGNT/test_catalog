@@ -209,7 +209,7 @@ class Song
     }
 
     /**
-     * @return mixed
+     * @return Album
      */
     public function getAlbum()
     {
@@ -217,7 +217,7 @@ class Song
     }
 
     /**
-     * @param mixed $album
+     * @param Album $album
      */
     public function setAlbum($album)
     {
