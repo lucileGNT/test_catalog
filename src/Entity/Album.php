@@ -50,6 +50,10 @@ class Album
      * @var string
      */
     private $distributionRights;
+    /**
+     * @ORM\OneToMany(targetEntity=Song::class, cascade={"persist", "remove"}, mappedBy="album")
+     */
+    protected $songs;
 
     /**
      * @return int
@@ -153,5 +157,21 @@ class Album
     public function setDistributionRights($distributionRights)
     {
         $this->distributionRights = $distributionRights;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSongs()
+    {
+        return $this->songs;
+    }
+
+    /**
+     * @param mixed $songs
+     */
+    public function setSongs($songs)
+    {
+        $this->songs = $songs;
     }
 }

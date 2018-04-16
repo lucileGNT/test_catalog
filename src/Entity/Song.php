@@ -59,6 +59,10 @@ class Song
      * @var string
      */
     private $distributionRights;
+    /**
+     * @ORM\ManyToOne(targetEntity=Album::class, inversedBy="songs")
+     */
+    private $album;
 
     /**
      * @return int
@@ -202,5 +206,21 @@ class Song
     public function setDistributionRights($distributionRights)
     {
         $this->distributionRights = $distributionRights;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAlbum()
+    {
+        return $this->album;
+    }
+
+    /**
+     * @param mixed $album
+     */
+    public function setAlbum($album)
+    {
+        $this->album = $album;
     }
 }
