@@ -24,7 +24,8 @@ class XmlPath
      * @ORM\Column(type="string")
      * @var string
      */
-    private $fileName;
+    private $fileFormat;
+
     /**
      * @ORM\Column(type="string")
      * @var string
@@ -49,10 +50,17 @@ class XmlPath
 
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(type="string", nullable=true)
      * @var string
      */
     private $subPath;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
+     */
+    private $language;
+
 
     /**
      * @return int
@@ -65,17 +73,17 @@ class XmlPath
     /**
      * @return string
      */
-    public function getFileName()
+    public function getFileFormat()
     {
-        return $this->fileName;
+        return $this->fileFormat;
     }
 
     /**
-     * @param string $fileName
+     * @param string $fileFormat
      */
-    public function setFileName($fileName)
+    public function setFileFormat($fileFormat)
     {
-        $this->fileName = $fileName;
+        $this->fileFormat = $fileFormat;
     }
 
     /**
@@ -156,6 +164,22 @@ class XmlPath
     public function setXmlFieldName($xmlFieldName)
     {
         $this->xmlFieldName = $xmlFieldName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLanguage()
+    {
+        return $this->language;
+    }
+
+    /**
+     * @param string $language
+     */
+    public function setLanguage($language)
+    {
+        $this->language = $language;
     }
 
 }
