@@ -40,8 +40,8 @@ class Song
      */
     private $mainArtist;
     /**
-     * @ORM\Column(type="integer", nullable=true)
-     * @var int
+     * @ORM\Column(type="float", nullable=true)
+     * @var float
      */
     private $duration;
     /**
