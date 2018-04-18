@@ -53,8 +53,13 @@ echo 'Process file: ' . $file . PHP_EOL;
 
 //Open existing files
 
-if (file_exists('xml/825646618309.xml')) {
-    $xml = simplexml_load_file('xml/825646618309.xml');
+if (file_exists($file)) {
+    $xml = simplexml_load_file($file);
+
+    //Get file format
+    $xmlAttributes = $xml->attributes();
+    $fileFormat = (string) $xmlAttributes->MessageSchemaVersionId;
+    $fileLanguage = (string) $xmlAttributes->LanguageAndScriptCode;
 
 
     //Get fields to parse order by group paths
@@ -62,13 +67,16 @@ if (file_exists('xml/825646618309.xml')) {
 
     $qb->select('distinct xp.groupPath')
         ->from(XmlPath::class, 'xp')
-        ->where('xp.fileName = :fileName')
+        ->where('xp.fileFormat = :fileFormat')
+        ->andWhere('xp.language = :language')
         ->orderBy('xp.groupPath')
         ->groupBy('xp.groupPath')
-        ->setParameter('fileName','825646618309.xml');
+        ->setParameter('fileFormat',$fileFormat)
+        ->setParameter('language',$fileLanguage);
 
     $groupPaths = $qb->getQuery()->getScalarResult();
 
+    //Create album object - 1 album per file
     $album = new Album();
     $entityManager->persist($album);
 
@@ -76,14 +84,15 @@ if (file_exists('xml/825646618309.xml')) {
         print_r($groupPath['groupPath']);
         print_r("--------------\n");*/
 
-
         $qb = $entityManager->createQueryBuilder();
 
         $qb->select('xp.subPath, xp.xmlFieldName, xp.fieldName, xp.objectType')
             ->from(XmlPath::class, 'xp')
-            ->where('xp.fileName = :fileName')
+            ->where('xp.fileFormat = :fileFormat')
+            ->andWhere('xp.language = :language')
             ->andWhere('xp.groupPath = :groupPath')
-            ->setParameter('fileName','825646618309.xml')
+            ->setParameter('fileFormat',$fileFormat)
+            ->setParameter('language',$fileLanguage)
             ->setParameter('groupPath', $groupPath['groupPath']);
 
         $fieldPaths = $qb->getQuery()->getResult();
@@ -113,8 +122,20 @@ if (file_exists('xml/825646618309.xml')) {
 
             foreach($fieldPaths as $path) { //get all data from this group
 
+//var_dump($path['subPath']);
+                if ($path['fieldName'] === 'duration') {
+                    $durationXML = (string)$element->{$path['xmlFieldName']};
+                    var_dump($durationXML);
+                    $duration = validateDuration((string)$element->{$path['xmlFieldName']});
+                    $song->{"set" . ucfirst($path['fieldName'])}($duration);
 
-                if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']})) {
+                } else if ($path['subPath'] === NULL) {
+                    if ($path['objectType'] === 'Song') {
+                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
+                    } else if ($path['objectType'] === 'Album') {
+                        $album->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
+                    }
+                } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']})) {
 
                     //insert in database
 //                    print_r((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']} . "\n");
@@ -139,7 +160,7 @@ if (file_exists('xml/825646618309.xml')) {
     }
     $entityManager->persist($album);
     $entityManager->flush();
-    
+
 
 } else {
     exit('Echec lors de l\'ouverture du fichier test.xml.');
@@ -153,4 +174,12 @@ if (file_exists('xml/825646618309.xml')) {
 
 echo '>>> END SCRIPT - Time: ', round((microtime(true) - $time), 2), 's <<<', PHP_EOL;
 
-
+function validateDuration($duration)
+{
+    if (preg_match('/^PT(\d{1,2})M(\d{1,2}).(\d{1,3})S$/', $duration, $parts) == true) {
+        $durationSecond = $parts[1]*60 + $parts[2].'.'.$parts[3];
+        return $durationSecond;
+    } else {
+        return false;
+    }
+}
