@@ -21,7 +21,7 @@ $dbParams = [
     'host'     => 'localhost',
     'charset'  => 'utf8',
     'user'     => 'root',
-    'password' => 'pqA/iuThi6>I',
+    'password' => '',
     'dbname'   => 'test_catalog',
 ];
 
