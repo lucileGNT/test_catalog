@@ -14,7 +14,7 @@ Example:
 ------------------------------------------
 */
 
-use Catalog\Entity\XmlPath;
+use Catalog\Entity\XmlMapping;
 use Catalog\Entity\Song;
 use Catalog\Entity\Album;
 
@@ -66,7 +66,7 @@ if (file_exists($file)) {
     $qb = $entityManager->createQueryBuilder();
 
     $qb->select('distinct xp.groupPath')
-        ->from(XmlPath::class, 'xp')
+        ->from(XmlMapping::class, 'xp')
         ->where('xp.fileFormat = :fileFormat')
         ->andWhere('xp.language = :language')
         ->orderBy('xp.groupPath')
@@ -87,7 +87,7 @@ if (file_exists($file)) {
         $qb = $entityManager->createQueryBuilder();
 
         $qb->select('xp.subPath, xp.xmlFieldName, xp.fieldName, xp.objectType')
-            ->from(XmlPath::class, 'xp')
+            ->from(XmlMapping::class, 'xp')
             ->where('xp.fileFormat = :fileFormat')
             ->andWhere('xp.language = :language')
             ->andWhere('xp.groupPath = :groupPath')

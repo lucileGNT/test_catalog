@@ -5,13 +5,13 @@ namespace Catalog\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * xml_path table. References all Xml paths depending on file name
+ * xml_mapping table. References all Xml paths depending on file name
  *
- * @ORM\Entity @ORM\Table(name="xml_path")
+ * @ORM\Entity @ORM\Table(name="xml_mapping")
  **/
 
 
-class XmlPath
+class XmlMapping
 {
     /**
      * @ORM\Id
