@@ -62,7 +62,7 @@ if (file_exists($file)) {
     //Call Helper
     $xmlToAlbumHelper = new XmlToAlbumHelper($xml, $entityManager);
 
-    //Get fields to parse order by group paths
+    //Get groups of xml elements to parse
     $groupPaths = $xmlToAlbumHelper->getXmlGroups($fileFormat, $fileLanguage);
 
     //Create album object - 1 album per file
@@ -70,46 +70,49 @@ if (file_exists($file)) {
 
     foreach ($groupPaths as $groupPath) {
 
+        //Get field list to parse in this group
         $fieldPaths = $xmlToAlbumHelper->getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath);
 
         $elements = $xml->xpath($groupPath['groupPath']);
 
-        foreach ($elements as $element) {
+        foreach ($elements as $element) { //Go through group elements
             //Get Reference
 
             if ((string)$element->{$groupPath['referenceTag']} === "R0") { //Album Infos
 
-                foreach ($fieldPaths as $path) {
+                foreach ($fieldPaths as $path) { //Look for all fields
                     if ($path['objectType'] === 'Album') {
                         $xmlToAlbumHelper->setField($album, $path, $element);
                     }
                 }
 
-                $entityManager->persist($album);
-                $entityManager->flush();
+                $xmlToAlbumHelper->persistAndFlushAlbum($album);
 
                 XmlToAlbumHelper::displayMessageAndDumpObject("Album infos inserted", $album);
 
             } else { //Song Infos
 
-                $reference = (int)substr($element->{$groupPath['referenceTag']}, 1);
+                $songNumber = (int)substr($element->{$groupPath['referenceTag']}, 1);
 
-                $song = $xmlToAlbumHelper->getSongObject($reference, $album);
+                //Get song object or create if it doesn't exist
+
+                $song = $xmlToAlbumHelper->getSongObject($songNumber, $album);
 
                 if (empty($song)) {
-                    $song = $xmlToAlbumHelper->createSongObject($reference, $album);
+                    $song = $xmlToAlbumHelper->createSongObject($songNumber, $album);
                 }
 
-                foreach ($fieldPaths as $path) { //get all data from this group
+                foreach ($fieldPaths as $path) { //Look for all fields
 
-                    if ($path['fieldName'] === 'duration') {
+                    if ($path['fieldName'] === 'duration') { //Duration - we need to parse it
+
                         $durationXML = (string)$element->{$path['xmlFieldName']};
 
                         $duration = XmlToAlbumHelper::validateDuration((string)$element->{$path['xmlFieldName']});
 
                         $xmlToAlbumHelper->setFieldWithFormattedValue($song, $path, $duration);
 
-                    } else if ($path['subPath'] === "") {
+                    } else if ($path['subPath'] === "") { //No sub path
                         $xmlToAlbumHelper->setFieldWithoutSubPath($song, $path, $element);
 
                     } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']}) && $path['objectType'] !== 'Album') {
@@ -118,6 +121,7 @@ if (file_exists($file)) {
 
 
                 }
+                
                 $xmlToAlbumHelper->persistAndFlushSong($song);
 
                 XmlToAlbumHelper::displayMessageAndDumpObject("Song inserted", $song);
@@ -125,8 +129,6 @@ if (file_exists($file)) {
             }
         }
     }
-
-    $xmlToAlbumHelper->persistAndFlushAlbum($album);
 
 
 } else {
