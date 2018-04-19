@@ -66,16 +66,16 @@ if (file_exists($file)) {
     //Get fields to parse order by group paths
     $qb = $entityManager->createQueryBuilder();
 
-    $qb->select('distinct xp.groupPath')
+    $qb->select('distinct xp.groupPath, xp.referenceTag')
         ->from(XmlMapping::class, 'xp')
         ->where('xp.fileFormat = :fileFormat')
         ->andWhere('xp.language = :language')
-        ->orderBy('xp.groupPath')
-        ->groupBy('xp.groupPath')
+        ->orderBy('xp.groupPath, xp.referenceTag')
+        ->groupBy('xp.groupPath, xp.referenceTag')
         ->setParameter('fileFormat',$fileFormat)
         ->setParameter('language',$fileLanguage);
 
-    $groupPaths = $qb->getQuery()->getScalarResult();
+    $groupPaths = $qb->getQuery()->getResult();
 
     //Create album object - 1 album per file
     $album = new Album();
@@ -98,15 +98,11 @@ if (file_exists($file)) {
 
         $fieldPaths = $qb->getQuery()->getResult();
         $elements = $xml->xpath($groupPath['groupPath']);
-        $position = 1;
-
-        $struct = explode('/',$groupPath['groupPath']);
-        $referenceTag = str_replace('List','Reference', $struct[0]);
 
         foreach ($elements as $element) {
             //Get Reference
 
-            if ((string)$element->{$referenceTag} === "R0") { //Album Infos
+            if ((string)$element->{$groupPath['referenceTag']} === "R0") { //Album Infos
 
                 foreach ($fieldPaths as $path) {
                     if ($path['objectType'] === 'Album') {
@@ -122,7 +118,7 @@ if (file_exists($file)) {
 
             } else { //Song Infos
 
-                $reference = (int)substr($element->{$referenceTag}, 1);
+                $reference = (int)substr($element->{$groupPath['referenceTag']}, 1);
 
                 $song = $entityManager
                     ->getRepository(Song::class)
