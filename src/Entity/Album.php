@@ -25,10 +25,16 @@ class Album
      * @ORM\Column(type="string", nullable=true)
      * @var string
      */
+    private $title;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
+     */
     private $icpn;
     /**
-     * @ORM\Column(type="integer", nullable=true)
-     * @var int
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
      */
     private $grid;
     /**
@@ -62,6 +68,22 @@ class Album
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param string $title
+     */
+    public function setTitle($title)
+    {
+        $this->title = $title;
     }
 
     /**
