@@ -17,6 +17,7 @@ Example:
 use Catalog\Entity\XmlMapping;
 use Catalog\Entity\Song;
 use Catalog\Entity\Album;
+use Catalog\Helper\XmlParserHelper;
 
 //~ Report & Display all error
 error_reporting(-1);
@@ -122,11 +123,10 @@ if (file_exists($file)) {
 
             foreach($fieldPaths as $path) { //get all data from this group
 
-//var_dump($path['subPath']);
                 if ($path['fieldName'] === 'duration') {
                     $durationXML = (string)$element->{$path['xmlFieldName']};
                     var_dump($durationXML);
-                    $duration = validateDuration((string)$element->{$path['xmlFieldName']});
+                    $duration = XmlParserHelper::validateDuration((string)$element->{$path['xmlFieldName']});
                     $song->{"set" . ucfirst($path['fieldName'])}($duration);
 
                 } else if ($path['subPath'] === NULL) {
@@ -174,12 +174,4 @@ if (file_exists($file)) {
 
 echo '>>> END SCRIPT - Time: ', round((microtime(true) - $time), 2), 's <<<', PHP_EOL;
 
-function validateDuration($duration)
-{
-    if (preg_match('/^PT(\d{1,2})M(\d{1,2}).(\d{1,3})S$/', $duration, $parts) == true) {
-        $durationSecond = $parts[1]*60 + $parts[2].'.'.$parts[3];
-        return $durationSecond;
-    } else {
-        return false;
-    }
-}
+
