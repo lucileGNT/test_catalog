@@ -6,7 +6,8 @@ use Catalog\Entity\XmlMapping;
 use Catalog\Entity\Album;
 use Catalog\Entity\Song;
 
-/** Functions useful to insert xml albums/songs in database
+/**
+ * Functions useful to insert xml albums/songs in database
  * @author Lucile Gentner
  */
 
@@ -21,6 +22,9 @@ class XmlToAlbumHelper
         $this->entityManager = $entityManager;
     }
 
+    /**
+     * Get all Xml groups to parse
+     */
     public function getXmlGroups($fileFormat, $fileLanguage)
     {
         $qb = $this->entityManager->createQueryBuilder();
@@ -37,6 +41,9 @@ class XmlToAlbumHelper
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * Get all fields to parse in one specific group
+     */
     public function getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath)
     {
 
@@ -54,6 +61,9 @@ class XmlToAlbumHelper
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * Creates an album object
+     */
     public function createAlbumObject()
     {
 
@@ -62,6 +72,9 @@ class XmlToAlbumHelper
         return $album;
     }
 
+    /**
+     * Get a song object from its reference and album
+     */
     public function getSongObject($reference, $album)
     {
         return $this->entityManager
@@ -71,6 +84,9 @@ class XmlToAlbumHelper
                 'album' => $album));
     }
 
+    /**
+     * Creates a song object
+     */
     public function createSongObject($reference, $album)
     {
         $song = new Song();
@@ -80,27 +96,42 @@ class XmlToAlbumHelper
         return $song;
     }
 
+    /**
+     * Set a field in database with the data parsed in XML
+     */
     public function setField($object, $path, $element)
     {
         $object->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
     }
 
+    /**
+     * Set a field in database with the data parsed in XML - when no subPath
+     */
     public function setFieldWithoutSubPath($object, $path, $element)
     {
         $object->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
     }
 
+    /**
+     * Set a field in database with the data parsed in XML - when the data has been formatted before
+     */
     public function setFieldWithFormattedValue($object, $path, $value)
     {
         $object->{"set" . ucfirst($path['fieldName'])}($value);
     }
 
+    /**
+     * Persists and flush an album
+     */
     public function persistAndFlushAlbum($album)
     {
         $this->entityManager->persist($album);
         $this->entityManager->flush();
     }
 
+    /**
+     * Persists and flush a song
+     */
     public function persistAndFlushSong($song)
     {
         $this->entityManager->persist($song);
