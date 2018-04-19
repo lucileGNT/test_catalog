@@ -109,7 +109,7 @@ if (file_exists($file)) {
 
                         $xmlParserHelper->setFieldWithFormattedValue($song, $path, $duration);
 
-                    } else if ($path['subPath'] === NULL) {
+                    } else if ($path['subPath'] === "") {
                         $xmlParserHelper->setFieldWithoutSubPath($song, $path, $element);
 
                     } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']}) && $path['objectType'] !== 'Album') {
