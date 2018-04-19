@@ -61,6 +61,11 @@ class XmlMapping
      */
     private $language;
 
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     * @var string
+     */
+    private $referenceTag;
 
     /**
      * @return int
@@ -180,6 +185,22 @@ class XmlMapping
     public function setLanguage($language)
     {
         $this->language = $language;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReferenceTag()
+    {
+        return $this->referenceTag;
+    }
+
+    /**
+     * @param string $referenceTag
+     */
+    public function setReferenceTag($referenceTag)
+    {
+        $this->referenceTag = $referenceTag;
     }
 
 }
