@@ -14,9 +14,7 @@ Example:
 ------------------------------------------
 */
 
-use Catalog\Entity\XmlMapping;
 use Catalog\Entity\Song;
-use Catalog\Entity\Album;
 use Catalog\Helper\XmlParserHelper;
 
 //~ Report & Display all error
@@ -62,41 +60,21 @@ if (file_exists($file)) {
     $fileFormat = (string) $xmlAttributes->MessageSchemaVersionId;
     $fileLanguage = (string) $xmlAttributes->LanguageAndScriptCode;
 
+    //Call Helper
+    $xmlParserHelper = new XmlParserHelper($xml, $entityManager);
 
     //Get fields to parse order by group paths
-    $qb = $entityManager->createQueryBuilder();
-
-    $qb->select('distinct xp.groupPath, xp.referenceTag')
-        ->from(XmlMapping::class, 'xp')
-        ->where('xp.fileFormat = :fileFormat')
-        ->andWhere('xp.language = :language')
-        ->orderBy('xp.groupPath, xp.referenceTag')
-        ->groupBy('xp.groupPath, xp.referenceTag')
-        ->setParameter('fileFormat',$fileFormat)
-        ->setParameter('language',$fileLanguage);
-
-    $groupPaths = $qb->getQuery()->getResult();
+    $groupPaths = $xmlParserHelper->getXmlGroups($fileFormat, $fileLanguage);
 
     //Create album object - 1 album per file
-    $album = new Album();
-    $entityManager->persist($album);
+    $album = $xmlParserHelper->createAlbumObject();
 
     foreach ($groupPaths as $groupPath) {/*
         print_r($groupPath['groupPath']);
         print_r("--------------\n");*/
 
-        $qb = $entityManager->createQueryBuilder();
+        $fieldPaths = $xmlParserHelper->getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath);
 
-        $qb->select('xp.subPath, xp.xmlFieldName, xp.fieldName, xp.objectType')
-            ->from(XmlMapping::class, 'xp')
-            ->where('xp.fileFormat = :fileFormat')
-            ->andWhere('xp.language = :language')
-            ->andWhere('xp.groupPath = :groupPath')
-            ->setParameter('fileFormat',$fileFormat)
-            ->setParameter('language',$fileLanguage)
-            ->setParameter('groupPath', $groupPath['groupPath']);
-
-        $fieldPaths = $qb->getQuery()->getResult();
         $elements = $xml->xpath($groupPath['groupPath']);
 
         foreach ($elements as $element) {
@@ -106,7 +84,7 @@ if (file_exists($file)) {
 
                 foreach ($fieldPaths as $path) {
                     if ($path['objectType'] === 'Album') {
-                        $album->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
+                        $xmlParserHelper->setField($album, $path, $element);
                     }
                 }
 
@@ -120,31 +98,26 @@ if (file_exists($file)) {
 
                 $reference = (int)substr($element->{$groupPath['referenceTag']}, 1);
 
-                $song = $entityManager
-                    ->getRepository(Song::class)
-                    ->findOneBy(array(
-                        'songNumber' => $reference,
-                        'album' => $album));
+                $song = $xmlParserHelper->getSongObject($reference, $album);
 
                 if (empty($song)) {
-                    $song = new Song();
-                    $song->setSongNumber($reference);
-                    $song->setAlbum($album);
+                    $song = $xmlParserHelper->createSongObject($reference, $album);
                 }
 
                 foreach ($fieldPaths as $path) { //get all data from this group
 
                     if ($path['fieldName'] === 'duration') {
                         $durationXML = (string)$element->{$path['xmlFieldName']};
-                        var_dump($durationXML);
+
                         $duration = XmlParserHelper::validateDuration((string)$element->{$path['xmlFieldName']});
-                        $song->{"set" . ucfirst($path['fieldName'])}($duration);
+
+                        $xmlParserHelper->setFieldWithFormattedValue($song, $path, $duration);
 
                     } else if ($path['subPath'] === NULL) {
-                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
+                        $xmlParserHelper->setFieldWithoutSubPath($song, $path, $element);
 
                     } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']}) && $path['objectType'] !== 'Album') {
-                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
+                        $xmlParserHelper->setField($song, $path, $element);
                     }
 
 

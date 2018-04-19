@@ -2,12 +2,98 @@
 
 namespace Catalog\Helper;
 
+use Catalog\Entity\XmlMapping;
+use Catalog\Entity\Album;
+use Catalog\Entity\Song;
+
 /** Functions useful to work on xml
  * @author Lucile Gentner
  */
 
 class XmlParserHelper
 {
+    private $xml;
+    private $entityManager;
+
+    public function __construct($xml, $entityManager)
+    {
+        $this->xml = $xml;
+        $this->entityManager = $entityManager;
+    }
+
+    public function getXmlGroups($fileFormat, $fileLanguage)
+    {
+        $qb = $this->entityManager->createQueryBuilder();
+
+        $qb->select('distinct xp.groupPath, xp.referenceTag')
+            ->from(XmlMapping::class, 'xp')
+            ->where('xp.fileFormat = :fileFormat')
+            ->andWhere('xp.language = :language')
+            ->orderBy('xp.groupPath, xp.referenceTag')
+            ->groupBy('xp.groupPath, xp.referenceTag')
+            ->setParameter('fileFormat',$fileFormat)
+            ->setParameter('language',$fileLanguage);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath)
+    {
+
+        $qb = $this->entityManager->createQueryBuilder();
+
+        $qb->select('xp.subPath, xp.xmlFieldName, xp.fieldName, xp.objectType')
+            ->from(XmlMapping::class, 'xp')
+            ->where('xp.fileFormat = :fileFormat')
+            ->andWhere('xp.language = :language')
+            ->andWhere('xp.groupPath = :groupPath')
+            ->setParameter('fileFormat',$fileFormat)
+            ->setParameter('language',$fileLanguage)
+            ->setParameter('groupPath', $groupPath['groupPath']);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function createAlbumObject()
+    {
+
+        $album = new Album();
+        $this->entityManager->persist($album);
+        return $album;
+    }
+
+    public function getSongObject($reference, $album)
+    {
+        return $this->entityManager
+            ->getRepository(Song::class)
+            ->findOneBy(array(
+                'songNumber' => $reference,
+                'album' => $album));
+    }
+
+    public function createSongObject($reference, $album)
+    {
+        $song = new Song();
+        $song->setSongNumber($reference);
+        $song->setAlbum($album);
+
+        return $song;
+    }
+
+    public function setField($object, $path, $element)
+    {
+        $object->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
+    }
+
+    public function setFieldWithoutSubPath($object, $path, $element)
+    {
+        $object->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
+    }
+
+    public function setFieldWithFormattedValue($object, $path, $value)
+    {
+        $object->{"set" . ucfirst($path['fieldName'])}($value);
+    }
 
     /** Parses ISO 8601 format
      * Return seconds
