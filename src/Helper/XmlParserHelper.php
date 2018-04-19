@@ -95,6 +95,19 @@ class XmlParserHelper
         $object->{"set" . ucfirst($path['fieldName'])}($value);
     }
 
+    public function persistAndFlushAlbum($album)
+    {
+        $this->entityManager->persist($album);
+        $this->entityManager->flush();
+    }
+
+    public function persistAndFlushSong($song)
+    {
+        $this->entityManager->persist($song);
+        $this->entityManager->flush();
+    }
+
+
     /** Parses ISO 8601 format
      * Return seconds
      */
@@ -106,6 +119,14 @@ class XmlParserHelper
         } else {
             return false;
         }
+    }
+
+    public static function displayMessageAndDumpObject($message, $object){
+
+        echo $message . PHP_EOL;
+        print_r($object);
+        echo "--------" . PHP_EOL;
+
     }
     
 }

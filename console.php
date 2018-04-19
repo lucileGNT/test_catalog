@@ -14,7 +14,6 @@ Example:
 ------------------------------------------
 */
 
-use Catalog\Entity\Song;
 use Catalog\Helper\XmlParserHelper;
 
 //~ Report & Display all error
@@ -69,9 +68,7 @@ if (file_exists($file)) {
     //Create album object - 1 album per file
     $album = $xmlParserHelper->createAlbumObject();
 
-    foreach ($groupPaths as $groupPath) {/*
-        print_r($groupPath['groupPath']);
-        print_r("--------------\n");*/
+    foreach ($groupPaths as $groupPath) {
 
         $fieldPaths = $xmlParserHelper->getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath);
 
@@ -90,9 +87,8 @@ if (file_exists($file)) {
 
                 $entityManager->persist($album);
                 $entityManager->flush();
-                echo "Album infos inserted" . PHP_EOL;
-                print_r($album);
-                echo "--------" . PHP_EOL;
+
+                XmlParserHelper::displayMessageAndDumpObject("Album infos inserted", $album);
 
             } else { //Song Infos
 
@@ -122,18 +118,15 @@ if (file_exists($file)) {
 
 
                 }
-                $entityManager->persist($song);
-                $entityManager->flush();
-                echo "Song inserted" . PHP_EOL;
-                print_r($song);
-                echo "--------" . PHP_EOL;
+                $xmlParserHelper->persistAndFlushSong($song);
+
+                XmlParserHelper::displayMessageAndDumpObject("Song inserted", $song);
                 unset($song);
             }
         }
     }
 
-    $entityManager->persist($album);
-    $entityManager->flush();
+    $xmlParserHelper->persistAndFlushAlbum($album);
 
 
 } else {
