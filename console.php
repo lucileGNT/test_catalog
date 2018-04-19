@@ -14,7 +14,7 @@ Example:
 ------------------------------------------
 */
 
-use Catalog\Helper\XmlParserHelper;
+use Catalog\Helper\XmlToAlbumHelper;
 
 //~ Report & Display all error
 error_reporting(-1);
@@ -60,17 +60,17 @@ if (file_exists($file)) {
     $fileLanguage = (string) $xmlAttributes->LanguageAndScriptCode;
 
     //Call Helper
-    $xmlParserHelper = new XmlParserHelper($xml, $entityManager);
+    $xmlToAlbumHelper = new XmlToAlbumHelper($xml, $entityManager);
 
     //Get fields to parse order by group paths
-    $groupPaths = $xmlParserHelper->getXmlGroups($fileFormat, $fileLanguage);
+    $groupPaths = $xmlToAlbumHelper->getXmlGroups($fileFormat, $fileLanguage);
 
     //Create album object - 1 album per file
-    $album = $xmlParserHelper->createAlbumObject();
+    $album = $xmlToAlbumHelper->createAlbumObject();
 
     foreach ($groupPaths as $groupPath) {
 
-        $fieldPaths = $xmlParserHelper->getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath);
+        $fieldPaths = $xmlToAlbumHelper->getFieldsToParseByGroup($fileFormat, $fileLanguage, $groupPath);
 
         $elements = $xml->xpath($groupPath['groupPath']);
 
@@ -81,23 +81,23 @@ if (file_exists($file)) {
 
                 foreach ($fieldPaths as $path) {
                     if ($path['objectType'] === 'Album') {
-                        $xmlParserHelper->setField($album, $path, $element);
+                        $xmlToAlbumHelper->setField($album, $path, $element);
                     }
                 }
 
                 $entityManager->persist($album);
                 $entityManager->flush();
 
-                XmlParserHelper::displayMessageAndDumpObject("Album infos inserted", $album);
+                XmlToAlbumHelper::displayMessageAndDumpObject("Album infos inserted", $album);
 
             } else { //Song Infos
 
                 $reference = (int)substr($element->{$groupPath['referenceTag']}, 1);
 
-                $song = $xmlParserHelper->getSongObject($reference, $album);
+                $song = $xmlToAlbumHelper->getSongObject($reference, $album);
 
                 if (empty($song)) {
-                    $song = $xmlParserHelper->createSongObject($reference, $album);
+                    $song = $xmlToAlbumHelper->createSongObject($reference, $album);
                 }
 
                 foreach ($fieldPaths as $path) { //get all data from this group
@@ -105,28 +105,28 @@ if (file_exists($file)) {
                     if ($path['fieldName'] === 'duration') {
                         $durationXML = (string)$element->{$path['xmlFieldName']};
 
-                        $duration = XmlParserHelper::validateDuration((string)$element->{$path['xmlFieldName']});
+                        $duration = XmlToAlbumHelper::validateDuration((string)$element->{$path['xmlFieldName']});
 
-                        $xmlParserHelper->setFieldWithFormattedValue($song, $path, $duration);
+                        $xmlToAlbumHelper->setFieldWithFormattedValue($song, $path, $duration);
 
                     } else if ($path['subPath'] === "") {
-                        $xmlParserHelper->setFieldWithoutSubPath($song, $path, $element);
+                        $xmlToAlbumHelper->setFieldWithoutSubPath($song, $path, $element);
 
                     } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']}) && $path['objectType'] !== 'Album') {
-                        $xmlParserHelper->setField($song, $path, $element);
+                        $xmlToAlbumHelper->setField($song, $path, $element);
                     }
 
 
                 }
-                $xmlParserHelper->persistAndFlushSong($song);
+                $xmlToAlbumHelper->persistAndFlushSong($song);
 
-                XmlParserHelper::displayMessageAndDumpObject("Song inserted", $song);
+                XmlToAlbumHelper::displayMessageAndDumpObject("Song inserted", $song);
                 unset($song);
             }
         }
     }
 
-    $xmlParserHelper->persistAndFlushAlbum($album);
+    $xmlToAlbumHelper->persistAndFlushAlbum($album);
 
 
 } else {

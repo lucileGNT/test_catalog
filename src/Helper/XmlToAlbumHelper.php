@@ -6,11 +6,11 @@ use Catalog\Entity\XmlMapping;
 use Catalog\Entity\Album;
 use Catalog\Entity\Song;
 
-/** Functions useful to work on xml
+/** Functions useful to insert xml albums/songs in database
  * @author Lucile Gentner
  */
 
-class XmlParserHelper
+class XmlToAlbumHelper
 {
     private $xml;
     private $entityManager;
