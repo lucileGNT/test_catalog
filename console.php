@@ -102,62 +102,67 @@ if (file_exists($file)) {
 
         $struct = explode('/',$groupPath['groupPath']);
         $referenceTag = str_replace('List','Reference', $struct[0]);
-        print_r($referenceTag);
 
         foreach ($elements as $element) {
             //Get Reference
 
-            $reference = (int)substr($element->{$referenceTag}, 1);
+            if ((string)$element->{$referenceTag} === "R0") { //Album Infos
 
-            $song = $entityManager
-                ->getRepository(Song::class)
-                ->findOneBy(array(
-                    'songNumber'=>$reference,
-                    'album' => $album));
-
-            if (empty($song)) {
-                $song = new Song();
-                $song->setSongNumber($reference);
-                $song->setAlbum($album);
-            }
-
-            foreach($fieldPaths as $path) { //get all data from this group
-
-                if ($path['fieldName'] === 'duration') {
-                    $durationXML = (string)$element->{$path['xmlFieldName']};
-                    var_dump($durationXML);
-                    $duration = XmlParserHelper::validateDuration((string)$element->{$path['xmlFieldName']});
-                    $song->{"set" . ucfirst($path['fieldName'])}($duration);
-
-                } else if ($path['subPath'] === NULL) {
-                    if ($path['objectType'] === 'Song') {
-                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
-                    } else if ($path['objectType'] === 'Album') {
-                        $album->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
-                    }
-                } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']})) {
-
-                    //insert in database
-//                    print_r((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']} . "\n");
-//                    print_r("....".$reference . "\n");
-
-                    if ($path['objectType'] === 'Song') {
-                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
-                    } else if ($path['objectType'] === 'Album') {
+                foreach ($fieldPaths as $path) {
+                    if ($path['objectType'] === 'Album') {
                         $album->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
+                    }
+                }
+
+                $entityManager->persist($album);
+                $entityManager->flush();
+                echo "Album infos inserted" . PHP_EOL;
+                print_r($album);
+                echo "--------" . PHP_EOL;
+
+            } else { //Song Infos
+
+                $reference = (int)substr($element->{$referenceTag}, 1);
+
+                $song = $entityManager
+                    ->getRepository(Song::class)
+                    ->findOneBy(array(
+                        'songNumber' => $reference,
+                        'album' => $album));
+
+                if (empty($song)) {
+                    $song = new Song();
+                    $song->setSongNumber($reference);
+                    $song->setAlbum($album);
+                }
+
+                foreach ($fieldPaths as $path) { //get all data from this group
+
+                    if ($path['fieldName'] === 'duration') {
+                        $durationXML = (string)$element->{$path['xmlFieldName']};
+                        var_dump($durationXML);
+                        $duration = XmlParserHelper::validateDuration((string)$element->{$path['xmlFieldName']});
+                        $song->{"set" . ucfirst($path['fieldName'])}($duration);
+
+                    } else if ($path['subPath'] === NULL) {
+                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->{$path['xmlFieldName']});
+
+                    } else if (isset($element->xpath($path['subPath'])[0]->{$path['xmlFieldName']}) && $path['objectType'] !== 'Album') {
+                        $song->{"set" . ucfirst($path['fieldName'])}((string)$element->xpath($path['subPath'])[0]->{$path['xmlFieldName']});
                     }
 
 
                 }
-
-
+                $entityManager->persist($song);
+                $entityManager->flush();
+                echo "Song inserted" . PHP_EOL;
+                print_r($song);
+                echo "--------" . PHP_EOL;
+                unset($song);
             }
-            $entityManager->persist($song);
-            $entityManager->flush();
-
-            unset($song);
         }
     }
+
     $entityManager->persist($album);
     $entityManager->flush();
 
